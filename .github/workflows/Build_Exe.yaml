@@ -41,7 +41,7 @@ jobs:
         run: echo "The extracted Project version is $env:PROJECTVERSION"
 
       - name: Setup Godot
-        uses: aignermax/setup-godot@main
+        uses: aignermax/godotSetupLocal@main
         with:
           version: ${{ steps.godot_version.outputs.VERSION }}
           
