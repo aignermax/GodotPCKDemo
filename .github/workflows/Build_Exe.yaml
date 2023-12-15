@@ -57,7 +57,7 @@ jobs:
 
       - name: Open and Save Godot Project to create .godot folder if needed
         run: |
-          godot "--headless", "--quit"
+          & godot "--headless", "--quit"
       
       - name: Create Build Directory
         run: mkdir -p ${{ github.workspace }}\\Release
