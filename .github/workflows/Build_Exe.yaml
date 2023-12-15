@@ -41,16 +41,19 @@ jobs:
         run: echo "The extracted Project version is $env:PROJECTVERSION"
 
       - name: Setup Godot
-        uses: aignermax/setup-godot@main
+        uses: chickensoft-games/setup-godot@v1 # aignermax/setup-godot@main
         with:
           version: ${{ steps.godot_version.outputs.VERSION }}
           
       - name: Print Godot env 
         run: |
           echo "The Path to Godot is $env:GODOT"
-          godot --version
         env:
           GODOT: ${{ env.GODOT }}
+
+      - name: Print Godot version running godot
+        run: |
+          godot --version
 
       - name: Open and Save Godot Project to create .godot folder if needed
         run: |
@@ -72,21 +75,10 @@ jobs:
         shell: pwsh
         env:
           GODOT: ${{ env.GODOT }}
-      - name: Build Windows EXE using godot directly
-        run: |
-          godot --headless --export-release "Windows Desktop"
-          
+
       - name: Build Windows EXE
         run: |
-          $godotPath = $Env:GODOT
-          $godotArgs = "--headless", "--export-release", "`"Windows Desktop`""
-          $godotProcess = Start-Process -FilePath $godotPath -ArgumentList $godotArgs -PassThru
-          $godotProcess.WaitForExit()
-        shell: pwsh
-        env:
-          GODOT_EXPORT_PATH: ${{ github.workspace }}\Release
-          GODOT_EXPORT_PRESET: "Windows Desktop"
-          GODOT: ${{ env.GODOT }}
+          godot --headless --export-release "Windows Desktop"
 
       - name: Zip Release Build
         id: zip_build
