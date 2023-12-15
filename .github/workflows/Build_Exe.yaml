@@ -25,7 +25,6 @@ jobs:
         run: |
           $godotVersion = Get-Content -Raw -Path 'global.json' | ConvertFrom-Json | Select-Object -ExpandProperty 'msbuild-sdks' | Select-Object -ExpandProperty 'Godot.NET.Sdk'
           echo "Godot version: $godotVersion"
-          godot --version
           echo "::set-output name=VERSION::$godotVersion"
 
       - name: Print extracted version
@@ -47,7 +46,9 @@ jobs:
           version: ${{ steps.godot_version.outputs.VERSION }}
           
       - name: Print Godot env 
-        run: echo "The Path to Godot is $env:GODOT"
+        run: |
+          echo "The Path to Godot is $env:GODOT"
+          godot --version
         env:
           GODOT: ${{ env.GODOT }}
 

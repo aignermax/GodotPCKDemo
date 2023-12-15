@@ -7,6 +7,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".github\workflows\Build_Exe.yaml" />
     <None Include="PCKGreeting.pck">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
