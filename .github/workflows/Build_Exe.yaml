@@ -1,0 +1,120 @@
+name: 🖥️ Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Connect-A-PIC.csproj'
+
+jobs:
+  build_windows_exe:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: 🧾 Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: 'recursive'
+
+      - name: Read Godot version from global.json
+        id: godot_version
+        run: |
+          $godotVersion = Get-Content -Raw -Path 'global.json' | ConvertFrom-Json | Select-Object -ExpandProperty 'msbuild-sdks' | Select-Object -ExpandProperty 'Godot.NET.Sdk'
+          echo "Godot version: $godotVersion"
+          echo "::set-output name=VERSION::$godotVersion"
+
+      - name: Print extracted version
+        run: echo "The extracted Godot version is $env:VERSION"
+
+      - name: Extract Version from Project File
+        id: project_version
+        run: |
+          [xml]$csprojContent = Get-Content -Path "Connect-A-PIC.csproj"
+          $version = $csprojContent.Project.PropertyGroup.Version
+          echo "PROJECTVERSION=$version" | Out-File -Append -FilePath $Env:GITHUB_ENV
+
+      - name: Print extracted PROJECTversion
+        run: echo "The extracted Project version is $env:PROJECTVERSION"
+
+      - name: Setup Godot
+        uses: aignermax/setup-godot@main
+        with:
+          version: ${{ steps.godot_version.outputs.VERSION }}
+          
+      - name: Print Godot env 
+        run: echo "The Path to Godot is $env:GODOT"
+        env:
+          GODOT: ${{ env.GODOT }}
+
+      - name: Open and Save Godot Project to create .godot folder if needed
+        run: |
+          $godotPath = $Env:GODOT
+          $godotArgs = "--headless", "--quit"
+          $godotProcess = Start-Process -FilePath $godotPath -ArgumentList $godotArgs -PassThru
+          $godotProcess.WaitForExit()
+        shell: pwsh
+        env:
+          GODOT: ${{ env.GODOT }}
+      
+      - name: Create Build Directory
+        run: mkdir -p ${{ github.workspace }}\\Release
+
+        shell: pwsh
+      - name: List Godot Directory
+        run: |
+          Get-ChildItem -Path $Env:GODOT -Recurse | ForEach-Object { Write-Host $_.FullName }
+        shell: pwsh
+        env:
+          GODOT: ${{ env.GODOT }}
+
+      - name: Build Windows EXE
+        run: |
+          $godotPath = $Env:GODOT
+          $godotArgs = "--headless", "--export-release", "`"Windows Desktop`""
+          $godotProcess = Start-Process -FilePath $godotPath -ArgumentList $godotArgs -PassThru
+          $godotProcess.WaitForExit()
+        shell: pwsh
+        env:
+          GODOT_EXPORT_PATH: ${{ github.workspace }}\Release
+          GODOT_EXPORT_PRESET: "Windows Desktop"
+          GODOT: ${{ env.GODOT }}
+
+      - name: Zip Release Build
+        id: zip_build
+        run: |
+          $zipPath = Join-Path "${{ github.workspace }}" "ConnectAPIC.zip"
+          Compress-Archive -Path "${{ github.workspace }}\Release\*" -DestinationPath $zipPath
+          echo "::set-output name=zip_path::$zipPath"
+        shell: pwsh
+
+      - name: List files in Release Directory
+        run: |
+          echo "list files in folder ${{ github.workspace }}\Release"
+          Get-ChildItem -Path ${{ github.workspace }}\\Release -Recurse | ForEach-Object { Write-Host $_.FullName }
+        shell: pwsh
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.project_version.outputs.VERSION }}
+          release_name: Release v${{ steps.project_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          body: "automatically generated release"
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.zip_build.outputs.zip_path }}
+          asset_name: ConnectAPIC.zip
+          asset_content_type: application/zip
