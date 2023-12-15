@@ -25,6 +25,7 @@ jobs:
         run: |
           $godotVersion = Get-Content -Raw -Path 'global.json' | ConvertFrom-Json | Select-Object -ExpandProperty 'msbuild-sdks' | Select-Object -ExpandProperty 'Godot.NET.Sdk'
           echo "Godot version: $godotVersion"
+          godot --version
           echo "::set-output name=VERSION::$godotVersion"
 
       - name: Print extracted version
@@ -41,7 +42,7 @@ jobs:
         run: echo "The extracted Project version is $env:PROJECTVERSION"
 
       - name: Setup Godot
-        uses: aignermax/godotSetupLocal@main
+        uses: aignermax/setup-godot@main
         with:
           version: ${{ steps.godot_version.outputs.VERSION }}
           
@@ -70,7 +71,10 @@ jobs:
         shell: pwsh
         env:
           GODOT: ${{ env.GODOT }}
-
+      - name: Build Windows EXE using godot directly
+        run: |
+          godot --headless --export-release "Windows Desktop"
+          
       - name: Build Windows EXE
         run: |
           $godotPath = $Env:GODOT
