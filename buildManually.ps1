@@ -2,6 +2,9 @@
 $godotPath = $env:GODOT
 $releaseDir = "Release"
 
+# Need to run the editor so .godot is generated
+Start-Process -FilePath $godotPath -ArgumentList "--editor", "--headless", "--quit" -NoNewWindow -Wait
+
 # Delete all old Releases
 if (Test-Path $releaseDir) {
     Remove-Item -Path "Release\*" -Recurse -Force
