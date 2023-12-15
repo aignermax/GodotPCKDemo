@@ -90,8 +90,8 @@ jobs:
 
       - name: List files in Release Directory
         run: |
-          echo "list files in folder ${{ github.workspace }}\Release"
-          Get-ChildItem -Path ${{ github.workspace }}\\Release -Recurse | ForEach-Object { Write-Host $_.FullName }
+          echo "list files in folder ${{ github.workspace }}"
+          Get-ChildItem -Path ${{ github.workspace }} -Recurse | ForEach-Object { Write-Host $_.FullName }
         shell: pwsh
 
       - name: Create GitHub Release
