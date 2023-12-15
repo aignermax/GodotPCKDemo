@@ -57,13 +57,7 @@ jobs:
 
       - name: Open and Save Godot Project to create .godot folder if needed
         run: |
-          $godotPath = $Env:GODOT
-          $godotArgs = "--headless", "--quit"
-          $godotProcess = Start-Process -FilePath $godotPath -ArgumentList $godotArgs -PassThru
-          $godotProcess.WaitForExit()
-        shell: pwsh
-        env:
-          GODOT: ${{ env.GODOT }}
+          godot "--headless", "--quit"
       
       - name: Create Build Directory
         run: mkdir -p ${{ github.workspace }}\\Release
