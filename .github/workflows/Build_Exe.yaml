@@ -39,36 +39,26 @@ jobs:
 
       - name: Print extracted PROJECTversion
         run: echo "The extracted Project version is $env:PROJECTVERSION"
-
-      - name: Setup Godot
-        uses: chickensoft-games/setup-godot@v1 # aignermax/setup-godot@main
+      
+      - name: 💽 Setup .NET SDK
+        uses: actions/setup-dotnet@v3
         with:
-          version: ${{ steps.godot_version.outputs.VERSION }}
+          # Use the .NET SDK from global.json in the root of the repository.
+          global-json-file: global.json
           
-      - name: Print Godot env 
-        run: |
-          echo "The Path to Godot is $env:GODOT"
-        env:
-          GODOT: ${{ env.GODOT }}
-
-      - name: Print Godot version running godot
-        run: |
-          godot --version
-
-      - name: Open and Save Godot Project to create .godot folder if needed
-        run: |
-          & godot "--headless", "--quit"
+      - name: 📦 Restore Dependencies
+        run: dotnet restore
+        
+      - name: 🤖 Setup Godot
+        uses: chickensoft-games/setup-godot@v1
+        with:
+          version: global.json
       
       - name: Create Build Directory
         run: mkdir -p ${{ github.workspace }}\\Release
-
-        shell: pwsh
-      - name: List Godot Directory
-        run: |
-          Get-ChildItem -Path $Env:GODOT -Recurse | ForEach-Object { Write-Host $_.FullName }
-        shell: pwsh
-        env:
-          GODOT: ${{ env.GODOT }}
+      
+      - name: 🧑‍🔬 Generate .NET Bindings and .godot folder
+        run: godot --headless --build-solutions --quit || exit 0
 
       - name: Build Windows EXE
         run: |
@@ -80,12 +70,6 @@ jobs:
           $zipPath = Join-Path "${{ github.workspace }}" "GodotFolderTest2.zip"
           Compress-Archive -Path "${{ github.workspace }}\Release\*" -DestinationPath $zipPath
           echo "::set-output name=zip_path::$zipPath"
-        shell: pwsh
-
-      - name: List files in Release Directory
-        run: |
-          echo "list files in folder ${{ github.workspace }}"
-          Get-ChildItem -Path ${{ github.workspace }} -Recurse | ForEach-Object { Write-Host $_.FullName }
         shell: pwsh
 
       - name: Create GitHub Release
