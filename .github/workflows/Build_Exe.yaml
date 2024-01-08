@@ -65,12 +65,21 @@ jobs:
           godot --headless --export-release "Windows Desktop"
 
       - name: Zip Release Build
-        id: zip_build
         run: |
-          $zipPath = Join-Path "${{ github.workspace }}" "GodotFolderTest2.zip"
-          Compress-Archive -Path "${{ github.workspace }}\Release\*" -DestinationPath $zipPath
-          echo "::set-output name=zip_path::$zipPath"
-        shell: pwsh
+          cd ${{ github.workspace }}/Release
+          zip -r ../ConnectAPIC.zip .
+          echo "zip_path=${{ github.workspace }}/ConnectAPIC.zip" >> $GITHUB_ENV
+          cd ..
+
+      - name: List files in Release Directory
+        run: |
+          releaseDir="$GITHUB_WORKSPACE/Release"
+          echo "Checking files in folder $releaseDir"
+          if [ -z "$(ls -A $releaseDir)" ]; then
+            echo "Error: No files found in the Release directory."
+            exit 1
+          fi
+          ls -l $releaseDir
 
       - name: Create GitHub Release
         id: create_release
@@ -90,6 +99,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.zip_build.outputs.zip_path }}
+          asset_path: ${{ env.zip_path }}
           asset_name: GodotFolderTest2.zip
           asset_content_type: application/zip
