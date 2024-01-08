@@ -63,13 +63,13 @@ jobs:
       - name: Build Windows EXE
         run: |
           godot --headless --export-release "Windows Desktop"
-
+          
       - name: Zip Release Build
         run: |
-          cd ${{ github.workspace }}/Release
-          zip -r ../ConnectAPIC.zip .
-          echo "zip_path=${{ github.workspace }}/ConnectAPIC.zip" >> $GITHUB_ENV
-          cd ..
+          cd ${{ github.workspace }}\Release
+          Compress-Archive -Path .\* -DestinationPath ${{ github.workspace }}\ConnectAPIC.zip
+          echo "zip_path=${{ github.workspace }}\ConnectAPIC.zip" >> $GITHUB_ENV
+        shell: powershell
 
       - name: List files in Release Directory
         run: |
